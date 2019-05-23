@@ -1,15 +1,14 @@
-#include "Store.h"
+#include "StackMachine.h"
 
 
 namespace VM
 {
 	Store::Store() {}
 
-
-	std::size_t Store::add(const std::any value, TYPE type) {
-		auto ptr = std::make_shared<Value>();
-		ptr->data = value;
-		ptr->type = type;
+	std::size_t Store::add(value_t value) {
+		auto ptr = std::make_shared<value_t>();
+		ptr->i32 = value.i32;
+		ptr->type = value.type;
 		this->storage.push_back(ptr);
 		return this->storage.size()-1;
 	}
@@ -20,7 +19,7 @@ namespace VM
 		this->storage.erase(it);
 	}
 
-	Value* Store::get(std::size_t reference) {
+	value_t* Store::get(std::size_t reference) {
 		return this->storage.at(reference).get();
 	}
 

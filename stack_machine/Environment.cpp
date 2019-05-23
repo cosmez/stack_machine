@@ -2,7 +2,7 @@
 Environment implementation
 Holds references to a store, the store is stored locally in a shared pointer
 **/
-#include "Environment.h"
+#include "StackMachine.h"
 
 namespace VM
 {
@@ -11,15 +11,15 @@ namespace VM
 		this->store = store;
 	}
 
-	void Environment::add(std::string name, std::any value, TYPE type) {
-		auto reference = this->store->add(value, type);
+	void Environment::add(std::string name, value_t value) {
+		auto reference = this->store->add(value);
 		this->env.insert(std::pair<std::string, std::size_t>(name, reference));
 	}
 
 	/***
 	 * Look up a variable name in the environment
 	 * */
-	Value* Environment::lookup(std::string name) {
+	value_t* Environment::lookup(std::string name) {
 		auto reference = (this->env).at(name);
 		auto value = this->store->get(reference);
 		return value;

@@ -1,14 +1,19 @@
-#include <iostream>
+#pragma once
 #include <string>
 #include <map>
 #include  "Environment.h"
 #include "Bytecode.h"
-#pragma once
+
 namespace VM
 {
+
+
 	enum OPCODE {
 		OP_PUSH = 1,
 		OP_POP,
+		OP_POPT, //pops (sizeof(type)) N length bytes
+		OP_POP2, //pops 2 length bytes
+		OP_POP4, //pops 4 length bytes
 		OP_DUP, //duplicates the contents at the top of the stack
 		OP_ADD,
 		OP_SUB,
@@ -28,34 +33,108 @@ namespace VM
 		OP_RET, //return from function call
 		OP_QUIT //end the program
 	};
-#define STACK_MAX 32
-	struct Stack {
-		int content[STACK_MAX];
-		int top;
+
+	enum TYPE {
+		//value types
+		TYPE_INT = 0,
+		TYPE_NUMBER,
+		TYPE_BOOL,
+		TYPE_CHAR,
+		TYPE_SYMBOL,
+		TYPE_STRING, //reference types
+		TYPE_FUNCTION, //closure
+		TYPE_PAIR
+	};
+
+	struct  value_t {
+		TYPE type;
+		union {
+			int i32;
+			float fl;
+			char c;
+			std::size_t ref; //pointer
+		};
+
+	};
+	typedef std::vector<value_t> stack_t;
+
+
+	class Store {
+	private:
+		std::vector<std::shared_ptr<value_t>> storage;
+	public:
+		Store();
+		void print();
+		std::size_t add(value_t value);
+		void remove(std::size_t reference);
+		value_t* get(std::size_t reference);
 	};
 
 
+	class Environment
+	{
+	private:
+		std::map<std::string, std::size_t> env;
+		std::shared_ptr<Store> store;
+	public:
+		Environment(const std::shared_ptr<Store> store);
+		void add(std::string name, value_t value);
+		value_t* lookup(std::string name);
+		void print();
+	};
 
+	struct Bytecode {
+		std::vector<std::size_t> Instructions;
+		std::vector<std::string> Strings;
+	};
+
+	class BytecodeWriter {
+	public:
+		std::vector<std::size_t> Bytecode;
+		std::vector<std::string> Symbols;
+
+		BytecodeWriter();
+
+		void Push(value_t value);
+		void Pop();
+		void Dup();
+
+		void Store(std::string name);
+		void Lookup(std::string name);
+
+		///write a label to jump back to it
+		void Label(std::string name);
+		void App(std::string name); //call a function
+		void Ret(); //return
+
+		//print & debug
+		void Print();
+		void Debug();
+
+		//math opcodes
+		void Add();
+		void Sub();
+	};
 
 	class StackMachine
 	{
 	private:
 		
-		Stack* _stack;
+		stack_t _stack;
 		//program counter
 		std::size_t _pc;
 		//frame pointer
 		std::size_t _fp;
+		std::size_t top;
 
 	public:
 		StackMachine();
 		~StackMachine();
 		void execute(Bytecode bytecode, Environment environment);
-		void push(int value);
-		int pop();
-		int peek(std::size_t position);
+		void push(value_t value);
+		value_t pop();
+		value_t peek(std::size_t position);
 		void print();
-		int apply(int (*binary_func)(int, int));
 		//stack functions
 		/**
 		 * math operations on integers
@@ -69,4 +148,5 @@ namespace VM
 		int eq_s(int a, int b);
 		int smtn_s(int a, int b);
 	};
+	
 }

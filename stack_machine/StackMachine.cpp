@@ -11,11 +11,10 @@ namespace VM
 	StackMachine::StackMachine() {
 		this->_pc = 0;
 		this->_fp = 0;
-		this->_stack = new Stack();
 	}
 
 	StackMachine::~StackMachine() {
-		delete this->_stack;
+
 	}
 
 	void StackMachine::execute(Bytecode bytecode, Environment environment)
@@ -23,25 +22,33 @@ namespace VM
 		while (this->_pc < bytecode.Instructions.size())
 		{
 			printf("Bytecode: pc: %d\t instr: %d\n", this->_pc,bytecode.Instructions[this->_pc]);
-			switch (bytecode.Instructions[this->_pc++])
+			auto OPCODE = static_cast<int>(bytecode.Instructions[this->_pc++]);
+			switch (OPCODE)
 			{
 				case OP_PUSH:
-					this->push(bytecode.Instructions[this->_pc++]);
+				{
+					value_t value;
+					value.i32 = static_cast<int> (bytecode.Instructions[this->_pc++]);
+					value.type = TYPE_INT;
+					this->push(value);
 					break;
+				}
 				case OP_POP:
-					this->pop();
+				{
+					pop();
 					break;
+				}
 				case OP_DUP:
 				{
-					auto value = this->pop();
+					auto value = pop();
 					this->push(value);
 					this->push(value);
 					break;
 				}
 				case OP_PRINT:
 				{
-					auto value = this->pop();
-					printf("%d\n", value);
+					auto value = pop();
+					printf("%d\n", value.i32);
 					break;
 				}
 				case OP_DEBUG:
@@ -51,24 +58,42 @@ namespace VM
 				case OP_STORE:
 				{
 					const std::string storeLiteral = bytecode.Strings[bytecode.Instructions[this->_pc++]];
-					environment.add(storeLiteral, this->pop(), TYPE_INT);
+					environment.add(storeLiteral, pop());
 					break;
 				}
 				case OP_LOOKUP:
 				{
-					const auto lookupLiteral = bytecode.Strings[bytecode.Instructions[this->_pc++]];
-					const auto lookupVal = environment.lookup(lookupLiteral);
-					this->push(std::any_cast<int>(lookupVal->data));
+					auto lookupLiteral = bytecode.Strings[bytecode.Instructions[this->_pc++]];
+					auto lookupVal = environment.lookup(lookupLiteral);
+					
+					//TODO: according to lookupVal->type, push the data
+					value_t value;
+					value.i32 = lookupVal->i32;
+					value.type = lookupVal->type;
+
+					this->push(value);
 					break;
 				}
 				case OP_ADD:
-					this->push(this->pop() + this->pop());
+				{
+					auto value1 = pop();
+					auto value2 = pop();
+					if (value1.type == TYPE_INT && value2.type == TYPE_INT)
+					{
+						value_t result{ TYPE_INT, value1.i32 + value2.i32 };
+						this->push(result);
+					}
 					break;
+				}
 				case OP_SUB:
 				{
-					const auto val2 = this->pop();
-					this->push(this->pop() - val2);
-					break;
+					auto value2 = pop();
+					auto value1 = pop();
+					if (value1.type == TYPE_INT && value2.type == TYPE_INT)
+					{
+						value_t result{ TYPE_INT, value1.i32 - value2.i32 };
+						this->push(result);
+					}
 				}
 				//always jump to next value
 				case OP_JMP:
@@ -78,7 +103,8 @@ namespace VM
 				case OP_JMPCMP: 
 				{
 					auto _newPC = bytecode.Instructions[this->_pc++];
-					if (this->pop()) {
+					auto value = pop();
+					if (value.i32) {
 						this->_pc = _newPC;
 					}
 					break;
@@ -87,8 +113,11 @@ namespace VM
 				case OP_APP:
 				{
 					//here we have to switch the environment
-					this->_fp = this->_stack->top; //point frame pointer to top of the stack
-					this->push(this->_pc); //store return address after frame pointer
+					this->_fp = this->top; //point frame pointer to top of the stack
+					value_t value;
+					value.type = TYPE_SYMBOL;
+					value.ref = this->_pc;
+					this->push(value); //store return address after frame pointer
 					this->_pc = bytecode.Instructions[this->_pc++]; //push current location
 					//push
 					break;
@@ -97,9 +126,9 @@ namespace VM
 				case OP_RET:
 				{
 					//here we have to restore the environment
-					auto returnValue = this->pop();
-					this->_pc = this->peek(this->_fp); //move the pc to previous location
-					this->_stack->top = this->_fp; //return to previous location in stack
+					auto returnValue = pop();
+					this->_pc = peek(this->_fp).ref; //move the pc to previous location
+					this->top = this->_fp; //return to previous location in stack
 					this->push(returnValue);
 					break;
 				}
@@ -111,29 +140,31 @@ namespace VM
 		}
 	}
 
-	/***
-	 * pushes the stack content
-	 * */
-	void StackMachine::push(int value)
-	{
-		_stack->content[_stack->top++] = value;
-	}
-
+	
 	/***
  * pushes the stack content
  * */
-	int StackMachine::peek(std::size_t position)
+	void StackMachine::push(value_t value)
 	{
-		return _stack->content[position];
+		_stack.push_back(value);
 	}
+
 
 
 	/**
 	 * pop the stack contents
 	 * */
-	int StackMachine::pop()
+	value_t StackMachine::pop()
 	{
-		return _stack->content[--_stack->top];
+		auto value = _stack[_stack.size() - 1];
+		_stack.pop_back();
+		return value;
+	}
+
+
+	value_t StackMachine::peek(std::size_t position)
+	{
+		return this->_stack[position];
 	}
 
 
@@ -141,28 +172,10 @@ namespace VM
 	 * Print the contents of the stack
 	 * */
 	void StackMachine::print() {
-		printf("[");
-		for (int i = 0; i < STACK_MAX; i++) {
-			if (i == _stack->top) {
-				printf("<");
-			}
-			printf("%d ", _stack->content[i]);
-
-		}
-		printf("]\n");
+		
 	}
 
 
-	/**
-	 * Pops 2 elements from the stack, apply the function and push it back
-	 * */
-	int StackMachine::StackMachine::apply(int (*binary_func)(int, int)) {
-		int val1 = pop();
-		int val2 = pop();
-		int sum = binary_func(val1, val2);
-		push(sum);
-		return sum;
-	}
 
 	/**
 	 * Binary functions used by opcodes

@@ -1,8 +1,4 @@
-#include <memory>
-#include "Store.h"
-#include "Environment.h"
 #include "StackMachine.h"
-#include "Bytecode.h"
 
 /***
  * TODO:
@@ -20,8 +16,6 @@
  * [ ] Symbols
  * [ ] Chars
  * [ ] Closures
- * [ ] Bottom-Up Environments
- * [ ] Modules
  * */
 
 
@@ -62,7 +56,7 @@ int main()
 
 	
 	StackMachine stack;
-	auto shared_store = std::make_shared<Store>();
+	const auto shared_store = std::make_shared<Store>();
 
 	//global store for now
 	Environment env(shared_store);
