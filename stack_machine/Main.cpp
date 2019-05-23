@@ -12,7 +12,7 @@
  * [x] Functions
  * [ ] Bytecode Writer
  * [ ] Debug Information
- * [ ] Untyped Stack
+ * [X] Untyped Stack
  * [ ] Symbols
  * [ ] Chars
  * [ ] Closures
@@ -43,13 +43,13 @@ int main()
 		OP_DUP,        //24
 		OP_JMPCMP, 18, //25  jump to 18
 		OP_APP, 30,    //27
-		OP_QUIT,       //28
-		BLOCK,         //29 function block, capture environment ? (val1)
-		OP_PUSH, 10,   //30
-		OP_PRINT,      //32
-		OP_PUSH, 0,    //33 value to return
-		OP_RET,        //35 return 0
-		ENDBLOCK       //36
+		OP_QUIT,       //29
+		BLOCK,         //30 function block, capture environment ? (val1)
+		OP_PUSH, 10,   //31
+		OP_PRINT,      //33
+		OP_PUSH, 0,    //35 value to return
+		OP_RET,        //37 return 0
+		ENDBLOCK       //38
 	}, {
 		"val1", "print10"
 	} };

@@ -6,10 +6,7 @@ namespace VM
 	Store::Store() {}
 
 	std::size_t Store::add(value_t value) {
-		auto ptr = std::make_shared<value_t>();
-		ptr->i32 = value.i32;
-		ptr->type = value.type;
-		this->storage.push_back(ptr);
+		this->storage.push_back(value);
 		return this->storage.size()-1;
 	}
 
@@ -19,8 +16,8 @@ namespace VM
 		this->storage.erase(it);
 	}
 
-	value_t* Store::get(std::size_t reference) {
-		return this->storage.at(reference).get();
+	value_t Store::get(std::size_t reference) {
+		return this->storage.at(reference);
 	}
 
 	void Store::print() {

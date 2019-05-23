@@ -19,7 +19,7 @@ namespace VM
 	/***
 	 * Look up a variable name in the environment
 	 * */
-	value_t* Environment::lookup(std::string name) {
+	value_t Environment::lookup(std::string name) {
 		auto reference = (this->env).at(name);
 		auto value = this->store->get(reference);
 		return value;

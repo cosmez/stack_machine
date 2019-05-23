@@ -53,6 +53,7 @@ namespace VM
 			float fl;
 			char c;
 			std::size_t ref; //pointer
+			(void*)pt;
 		};
 
 	};
@@ -61,13 +62,13 @@ namespace VM
 
 	class Store {
 	private:
-		std::vector<std::shared_ptr<value_t>> storage;
+		std::vector<value_t> storage;
 	public:
 		Store();
 		void print();
 		std::size_t add(value_t value);
 		void remove(std::size_t reference);
-		value_t* get(std::size_t reference);
+		value_t get(std::size_t reference);
 	};
 
 
@@ -79,7 +80,7 @@ namespace VM
 	public:
 		Environment(const std::shared_ptr<Store> store);
 		void add(std::string name, value_t value);
-		value_t* lookup(std::string name);
+		value_t lookup(std::string name);
 		void print();
 	};
 
@@ -125,7 +126,6 @@ namespace VM
 		std::size_t _pc;
 		//frame pointer
 		std::size_t _fp;
-		std::size_t top;
 
 	public:
 		StackMachine();
@@ -134,6 +134,8 @@ namespace VM
 		void push(value_t value);
 		value_t pop();
 		value_t peek(std::size_t position);
+		void top(std::size_t position);
+		std::size_t top();
 		void print();
 		//stack functions
 		/**

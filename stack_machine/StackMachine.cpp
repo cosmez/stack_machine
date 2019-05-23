@@ -1,9 +1,4 @@
-// stack_machine.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
 #include "StackMachine.h"
-
-
 
 namespace VM
 {
@@ -64,14 +59,7 @@ namespace VM
 				case OP_LOOKUP:
 				{
 					auto lookupLiteral = bytecode.Strings[bytecode.Instructions[this->_pc++]];
-					auto lookupVal = environment.lookup(lookupLiteral);
-					
-					//TODO: according to lookupVal->type, push the data
-					value_t value;
-					value.i32 = lookupVal->i32;
-					value.type = lookupVal->type;
-
-					this->push(value);
+					this->push(environment.lookup(lookupLiteral));
 					break;
 				}
 				case OP_ADD:
@@ -82,6 +70,14 @@ namespace VM
 					{
 						value_t result{ TYPE_INT, value1.i32 + value2.i32 };
 						this->push(result);
+					}
+					else if (value1.type == TYPE_NUMBER && value2.type == TYPE_NUMBER)
+					{
+						value_t result{ TYPE_NUMBER, value1.fl + value2.fl };
+						this->push(result);
+					}
+					else {
+						perror("Invalid types for OP_ADD");
 					}
 					break;
 				}
@@ -94,6 +90,15 @@ namespace VM
 						value_t result{ TYPE_INT, value1.i32 - value2.i32 };
 						this->push(result);
 					}
+					else if (value1.type == TYPE_NUMBER && value2.type == TYPE_NUMBER)
+					{
+						value_t result{ TYPE_NUMBER, value1.fl - value2.fl };
+						this->push(result);
+					}
+					else {
+						perror("Invalid types for OP_SUB");
+					}
+					break;
 				}
 				//always jump to next value
 				case OP_JMP:
@@ -112,13 +117,18 @@ namespace VM
 				//function call
 				case OP_APP:
 				{
-					//here we have to switch the environment
-					this->_fp = this->top; //point frame pointer to top of the stack
+					//point frame pointer to top of the stack
+					this->_fp = this->top();
+					//store return address after frame pointer
 					value_t value;
 					value.type = TYPE_SYMBOL;
-					value.ref = this->_pc;
-					this->push(value); //store return address after frame pointer
-					this->_pc = bytecode.Instructions[this->_pc++]; //push current location
+					value.ref = this->_pc + 1;
+					this->push(value);
+
+					//here we have to switch the environment
+					//move to procedure location
+					this->_pc = bytecode.Instructions[this->_pc]; 
+
 					//push
 					break;
 				}
@@ -128,7 +138,7 @@ namespace VM
 					//here we have to restore the environment
 					auto returnValue = pop();
 					this->_pc = peek(this->_fp).ref; //move the pc to previous location
-					this->top = this->_fp; //return to previous location in stack
+					this->top(this->_fp); //return to previous location in stack
 					this->push(returnValue);
 					break;
 				}
@@ -147,6 +157,17 @@ namespace VM
 	void StackMachine::push(value_t value)
 	{
 		_stack.push_back(value);
+	}
+
+
+	void StackMachine::top(std::size_t position)
+	{
+		_stack.resize(position);
+	}
+
+	std::size_t StackMachine::top()
+	{
+		return _stack.size();
 	}
 
 
