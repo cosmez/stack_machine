@@ -28,7 +28,7 @@ namespace StackMachine
         {
             foreach (var entry in Env)
             {
-                Console.WriteLine($"{entry.Key} \t=\t {entry.Value}");
+                Console.WriteLine($"{entry.Key} \t=\t {this.Store.Get(entry.Value)}");
             }
         }
     }

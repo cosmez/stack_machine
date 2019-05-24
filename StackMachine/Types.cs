@@ -31,7 +31,8 @@ namespace StackMachine
         ENDBLOCK, //end closure
         APP, //a function call
         RET, //return from function call
-        QUIT //end the program
+        QUIT, //end the program
+        JNE
     };
 
     enum ValueType
@@ -67,7 +68,19 @@ namespace StackMachine
 
         public override String ToString()
         {
-            return $"Type: {type}, Value: [${i32}/${fl}/${c}]";
+            switch (type)
+            {
+                case ValueType.INT:
+                    return $"n: {i32}";
+                case ValueType.BOOL:
+                    return $"b: {b}";
+                case ValueType.CHAR:
+                    return $"c: {c}";
+                case ValueType.NUMBER:
+                    return $"f: {fl}";
+                default:
+                    return $"reference {type.ToString()} {i32}";
+            }
         }
     };
 
