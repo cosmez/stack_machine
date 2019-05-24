@@ -73,7 +73,7 @@ namespace VM
 					}
 					else if (value1.type == TYPE_NUMBER && value2.type == TYPE_NUMBER)
 					{
-						value_t result{ TYPE_NUMBER, value1.fl + value2.fl };
+						value_t result{ TYPE_NUMBER, (float)(value1.fl + value2.fl) };
 						this->push(result);
 					}
 					else {
@@ -92,7 +92,7 @@ namespace VM
 					}
 					else if (value1.type == TYPE_NUMBER && value2.type == TYPE_NUMBER)
 					{
-						value_t result{ TYPE_NUMBER, value1.fl - value2.fl };
+						value_t result{ TYPE_NUMBER, (float)(value1.fl - value2.fl) };
 						this->push(result);
 					}
 					else {
@@ -122,7 +122,7 @@ namespace VM
 					//store return address after frame pointer
 					value_t value;
 					value.type = TYPE_SYMBOL;
-					value.ref = this->_pc + 1;
+					value.car = this->_pc + 1;
 					this->push(value);
 
 					//here we have to switch the environment
@@ -137,7 +137,7 @@ namespace VM
 				{
 					//here we have to restore the environment
 					auto returnValue = pop();
-					this->_pc = peek(this->_fp).ref; //move the pc to previous location
+					this->_pc = peek(this->_fp).car; //move the pc to previous location
 					this->top(this->_fp); //return to previous location in stack
 					this->push(returnValue);
 					break;

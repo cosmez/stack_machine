@@ -46,17 +46,17 @@ namespace VM
 		TYPE_PAIR
 	};
 
-	struct  value_t {
+	struct value_t {
 		TYPE type;
 		union {
 			int i32;
 			float fl;
 			char c;
-			std::size_t ref; //pointer
-			(void*)pt;
+			std::size_t car; //non specialized type
 		};
-
+		std::size_t cdr; //pointer to the next location value
 	};
+
 	typedef std::vector<value_t> stack_t;
 
 
