@@ -9,6 +9,9 @@ namespace StackMachine
     {
         NOP = 0,
         PUSH,
+        TRUE,  //pushes nil on top of the stack
+        FALSE, //pushes false on top of the stack
+        NIL, //pushes nil on top of the stack
         POP,
         POPT, //pops (sizeof(type)) N length bytes
         POP2, //pops 2 length bytes

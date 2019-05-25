@@ -7,6 +7,7 @@ namespace StackMachine
 {
     /// <summary>
     /// OPCodes retrieved from the ByteCodes
+    /// TODO: Environments need to be first-class to implement closures
     /// TODO: how do we pass arguments in a efficient way
     /// </summary>
     class Interpreter : Stack<Value>
@@ -19,22 +20,37 @@ namespace StackMachine
         /// Frame Pointer
         /// </summary>
 		private int FP { get; set; }
+        /// <summary>
+        /// Current Environment
+        /// </summary>
+        private int CurrentEnv { get; set; }
 
+        /// <summary>
+        /// Environments.
+        /// The current environment is retrieved by using PC (Function Location)
+        /// as an index.
+        /// </summary>
+        private Dictionary<int, Environment> Envs { get; set; }
+
+        private Environment Env {
+            get { return Envs[CurrentEnv]; }
+        }
 
         
 		public Interpreter()
         {
             PC = 0;
             FP = 0;
+            Envs = new Dictionary<int, Environment>();
         }
 
         public Interpreter(IEnumerable<Value> collection) : base(collection)
         {
         }
 
-        public void Execute(Bytecode bytecode, Environment environment)
+        public void Execute(Bytecode bytecode, Environment rootEnv)
         {
-            var globalEnvironment = environment;
+            Envs.Add(0, rootEnv); //global environment
             while (PC < bytecode.Bytecodes.Length)
             {
                 Thread.Sleep(100);
@@ -45,21 +61,26 @@ namespace StackMachine
                 if (bytecode.IsDebugging && bytecode.DebugInfo.ContainsKey(PC))
                     Console.WriteLine(bytecode.DebugInfo[PC]);
                 else
-                    Console.WriteLine("OPCODE: {opCode.ToString()}");
+                    Console.WriteLine($"OPCODE: {opCode.ToString()}");
                 Console.ForegroundColor = ConsoleColor.White;
                 PC++;
                 switch (opCode)
                 {
                     case OpCode.PUSH:
-                        {
-                            Push(bytecode.Bytecodes[PC++]);
-                            break;
-                        }
+                        Push(bytecode.Bytecodes[PC++]);
+                        break;
+                    case OpCode.NIL:
+                        PushNil();
+                        break;
+                    case OpCode.FALSE:
+                        Push(false);
+                        break;
+                    case OpCode.TRUE:
+                        Push(true);
+                        break;
                     case OpCode.POP:
-                        {
-                            Pop();
-                            break;
-                        }
+                        Pop();
+                        break;
                     case OpCode.DUP:
                         {
                             var value = Pop();
@@ -82,20 +103,20 @@ namespace StackMachine
                             break;
                         }
                     case OpCode.DEBUG:
-                        environment.Print();
+                        Envs[CurrentEnv].Print();
                         Print();
                         break;
                     case OpCode.STORE:
                         {
                             string storeLiteral = bytecode.Symbols[bytecode.Bytecodes[PC++].i32];
                             var value = Pop();
-                            environment.Add(storeLiteral, value);
+                            Env.Add(storeLiteral, value);
                             break;
                         }
                     case OpCode.LOOKUP_LOCAL:
                         {
                             var lookupLiteral = bytecode.Symbols[bytecode.Bytecodes[PC++].i32];
-                            var value = environment.Lookup(lookupLiteral);
+                            var value = Env.Lookup(lookupLiteral);
                             Push(value);
                             break;
                         }
@@ -104,38 +125,19 @@ namespace StackMachine
                             var value1 = Pop();
                             var value2 = Pop();
                             if (value1.type == ValueType.INT && value2.type == ValueType.INT)
-                            {
-                                var result = new Value { type = ValueType.INT, i32 = value1.i32 + value2.i32 };
-                                Push(result);
-                            }
+                                Push(value1.i32 + value2.i32);
                             else if (value1.type == ValueType.NUMBER && value2.type == ValueType.NUMBER)
-                            {
-                                var result = new Value { type = ValueType.NUMBER, fl = value1.fl + value2.fl };
-                                Push(result);
-                            }
+                                Push(value1.fl + value2.fl);
                             else
-                            {
                                 throw new Exception("Invalid types for OP_ADD");
-                            }
                             break;
                         }
                     case OpCode.ADD1:
                         {
                             var value1 = Pop();
-                            if (value1.type == ValueType.INT)
-                            {
-                                var result = new Value { type = ValueType.INT, i32 = value1.i32 + 1  };
-                                Push(result);
-                            }
-                            else if (value1.type == ValueType.NUMBER)
-                            {
-                                var result = new Value { type = ValueType.NUMBER, fl = value1.fl + 1f };
-                                Push(result);
-                            }
-                            else
-                            {
-                                throw new Exception("Invalid types for OP_ADD");
-                            }
+                            if (value1.type == ValueType.INT) Push(value1.i32 + 1);
+                            else if (value1.type == ValueType.NUMBER) Push(value1.fl + 1f);
+                            else throw new Exception("Invalid types for OP_ADD");
                             break;
                         }
                     case OpCode.SUB:
@@ -143,38 +145,19 @@ namespace StackMachine
                             var value1 = Pop();
                             var value2 = Pop();
                             if (value1.type == ValueType.INT && value2.type == ValueType.INT)
-                            {
-                                var result = new Value { type = ValueType.INT, i32 = value2.i32 - value1.i32 };
-                                Push(result);
-                            }
+                                Push(value2.i32 - value1.i32);
                             else if (value1.type == ValueType.NUMBER && value2.type == ValueType.NUMBER)
-                            {
-                                var result = new Value { type = ValueType.NUMBER, fl = value2.fl - value1.fl };
-                                Push(result);
-                            }
+                                Push(value2.fl - value1.fl);
                             else
-                            {
-                                throw new Exception("Invalid types for SUB");
-                            }
+                                throw new Exception("Invalid types for SUB"); ;
                             break;
                         }
                     case OpCode.SUB1:
                         {
                             var value = Pop();
-                            if (value.type == ValueType.INT)
-                            {
-                                var result = new Value { type = ValueType.INT, i32 = value.i32 - 1 };
-                                Push(result);
-                            }
-                            else if (value.type == ValueType.NUMBER)
-                            {
-                                var result = new Value { type = ValueType.NUMBER, fl = value.fl - 1 };
-                                Push(result);
-                            }
-                            else
-                            {
-                                throw new Exception("Invalid types for SUB1");
-                            }
+                            if (value.type == ValueType.INT) Push(value.i32 - 1);
+                            else if (value.type == ValueType.NUMBER) Push(value.fl - 1.0f);
+                            else throw new Exception("Invalid types for SUB1");
                             break;
                         }
                     //always jump to next value
@@ -238,31 +221,37 @@ namespace StackMachine
                                 | E2  | b      |   9 |
                                 | E3  | c      |  10 |
                                 +-----+--------+-----+
-                                Store:
+                                OPCODE:
                                 | Loc | Type     | Val |                             |
                                 |-----+----------+-----+-----------------------------|
-                                |   0 | CLOSURE  | 002 | closure points to PC        |
+                                |   0 | CLOSURE  |  80 | closure points to PC        |
                                 |   1 | NUMBER   |   3 | Closure captured references |
                                 |   2 | UPVALUE  |   5 | Env Reference a             |
                                 |   3 | UPVALUE  |   9 | Env Reference b             |
                                 |   4 | UPVALUE  |  16 | Env Reference c             |
                                 |  .. | ..       |  .. |                             |
+                                |  .. | ..       |  .. |                             |
                                 |   7 | INT      |  10 | Previous Environment a = 10 |
                                 |   8 | INT      |  10 | New Environment a = 10      |
                                 |   9 | INT      |  20 | b = 20                      |
                                 |  10 | INT      |  30 | c = 30                      |
+                                |  .. | ..       |  .. |                             |
+                                |  80 | FUNCTION |  .. | Function Location           |
                                 +-----+----------+-----+-----------------------------+
                              * */
-                            var closure = new Value() { type = ValueType.CLOSURE, i32 = PC++ }; //get the closure
+                            var closure = new Value() { type = ValueType.CLOSURE, i32 = bytecode.Bytecodes[PC++].i32 }; //get the closure
+                            Push(closure);
+                            //create new environment with upvalues
                             var closeUpValues = bytecode.Bytecodes[PC++];
                             var arguments = new Value[closeUpValues.i32]; //get the number of upvalues
-                            for (int i = arguments.Length-1; i >= 0; i--) 
+                            string[] upvalues = new string[closeUpValues.i32];
+                            for (int i = 0; i < arguments.Length; i++) 
                             {
-                                Push(bytecode.Bytecodes[PC++]);  //push upvalues
+                                upvalues[i] = bytecode.Symbols[bytecode.Bytecodes[PC++].i32];
                             }
-
-                            Push(closeUpValues);
-                            Push(closure);
+                            //clone the environment here
+                            Envs.Add(closure.i32, rootEnv.ClosureEnvironment(upvalues));
+                            
                             break;
                         }
                     //the function itself should be retrieved from the stack
@@ -281,26 +270,10 @@ namespace StackMachine
                             {
                                 throw new Exception($"Expected a Closure, got a {closure.type} instead");
                             }
-                            var upValueCount = Pop();
-                            if (upValueCount.type != ValueType.INT)
-                            {
-                                throw new Exception("Expected a number of upvalues");
-                            }
-
-                            //clone the environment here
-                            string[] upvalues = new string[upValueCount.i32];
-                            for (int i = 0; i < upValueCount.i32; i++)
-                            {
-                                upvalues[i] = bytecode.Symbols[Pop().i32];
-                            }
 
 
-                            //main environment becomes parent
-                            environment = environment.ClosureEnvironment(upvalues);
-
-
-                            //push return address at the top of the stack
-                            Push(new Value() { type = ValueType.INT, i32 = closure.i32 });
+                            Push(PC+1); //push return address at the top of the stack
+                            Push(CurrentEnv); //push current environment
                             
 
                             //store return address after frame pointer
@@ -311,17 +284,20 @@ namespace StackMachine
                             //here we have to switch the environment
 
                             //move to procedure location
-                            PC = bytecode.Bytecodes[PC].i32;
+                            PC = closure.i32;
+                            //move to closure env
+                            CurrentEnv = PC;
                             break;
                         }
                     //function return, functions should always return something
                     case OpCode.RET:
                         {
-                            //here we have to restore the environment
-                            environment = environment.Parent;
+                            //return value
                             var returnValue = Pop();
+
                             while (Count > FP) Pop();
-                            PC = Pop().i32;
+                            CurrentEnv = Pop().i32; //previous environment
+                            PC = Pop().i32; //return address
                             Push(returnValue);
                             break;
                         }
@@ -332,6 +308,12 @@ namespace StackMachine
             }
 
         }
+
+        void Push(int value) => Push(new Value() { type = ValueType.INT, i32 = value });
+        void Push(float value) => Push(new Value() { type = ValueType.NUMBER, fl = value });
+        void Push(bool value) => Push(new Value() { type = ValueType.BOOL, b = value });
+        void Push(char value) => Push(new Value() { type = ValueType.SYMBOL, c = value });
+        void PushNil() => Push(new Value() { type = ValueType.NIL, i32 =  0 });
 
         void Print()
         {

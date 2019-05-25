@@ -13,6 +13,7 @@
 - [X] Symbols
 - [X] Chars
 - [ ] Globals
+- [X] First Class Environments
 - [ ] Locals
 - [ ] Function Parameters
 - [ ] Closures

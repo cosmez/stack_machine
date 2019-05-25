@@ -9,6 +9,7 @@ namespace StackMachine
         public Value[] Bytecodes;
         public string[] Symbols;
         public bool IsDebugging;
+
         public Dictionary<int, string> DebugInfo { get; set; }
         public Bytecode(Value[] bytecode, string[] symbols, bool isDebugging = false, Dictionary<int, string> debugInfo = null)
         {
@@ -201,8 +202,14 @@ namespace StackMachine
         public void JumpCond(string label) =>
             Jump(OpCode.JMPCMP, label);
 
-        public void App(string label) =>
-            Jump(OpCode.APP, label);
+        public void App()
+        {
+            Debug("APP");
+            Add(OpCode.APP);
+            Add(0);
+        }
+            
+    
 
 
         /// <summary>
@@ -255,7 +262,9 @@ namespace StackMachine
             {
                 //global variables and methods can be used before being defined
                 //check for those that were never defined
-                if ((OpCode)Bytecode[i].i32 == OpCode.APP)
+                if ((OpCode)Bytecode[i].i32 == OpCode.CLOSURE ||
+                    (OpCode)Bytecode[i].i32 == OpCode.JMPCMP  ||
+                    (OpCode)Bytecode[i].i32 == OpCode.JMP)
                 {
                     //symbol reference
                     int labelReference = Bytecode[++i].i32;
