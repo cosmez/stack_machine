@@ -15,6 +15,7 @@
 - [ ] Globals
 - [X] First Class Environments
 - [ ] Locals
+- [ ] First Class Environments
 - [ ] Function Parameters
 - [ ] Closures
 - [ ] Cons cells
