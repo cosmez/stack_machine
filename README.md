@@ -12,6 +12,8 @@
 - [X] Untyped Stack
 - [X] Symbols
 - [X] Chars
+- [ ] Globals
+- [ ] Locals
 - [ ] Function Parameters
 - [ ] Closures
 - [ ] Cons cells
