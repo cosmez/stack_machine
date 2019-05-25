@@ -14,6 +14,7 @@
 - [X] Chars
 - [ ] Globals
 - [ ] Locals
+- [ ] First Class Environments
 - [ ] Function Parameters
 - [ ] Closures
 - [ ] Cons cells
