@@ -68,8 +68,15 @@ namespace StackMachine
                     case OpCode.PRINT:
                         {
                             var value = Pop();
-
-                            Console.WriteLine($"{value}");
+                            if (value.type == ValueType.INT || value.type == ValueType.NUMBER
+                                || value.type == ValueType.CHAR || value.type == ValueType.BOOL)
+                            {
+                                Console.WriteLine($"{value}");
+                            }
+                            else if (value.type == ValueType.SYMBOL)
+                            {
+                                Console.WriteLine($"{bytecode.Symbols[value.i32]}");
+                            }
                             break;
                         }
                     case OpCode.DEBUG:

@@ -58,6 +58,18 @@ namespace StackMachine
             Bytecode.Add(new Value() { type = ValueType.BOOL, b = value });
 
         /// <summary>
+        /// Adds A Symbol
+        /// </summary>
+        /// <param name="value"></param>
+        private void Add(string symbol)
+        {
+            if (!Symbols.Contains(symbol)) Symbols.Add(symbol);
+            Bytecode.Add(new Value() { type = ValueType.SYMBOL, i32 = Symbols.IndexOf(symbol) });
+        }
+
+
+
+        /// <summary>
         /// Adds Debugging information to the current instruction
         /// </summary>
         /// <param name="content"></param>
@@ -73,6 +85,34 @@ namespace StackMachine
         }
 
         public void Push(int value) {
+            Debug($"PUSH {value}");
+            Add(OpCode.PUSH);
+            Add(value);
+        }
+
+        public void Push(string value)
+        {
+            Debug($"PUSH {value}");
+            Add(OpCode.PUSH);
+            Add(value);
+        }
+
+        public void Push(float value)
+        {
+            Debug($"PUSH {value}");
+            Add(OpCode.PUSH);
+            Add(value);
+        }
+
+        public void Push(bool value)
+        {
+            Debug($"PUSH {value}");
+            Add(OpCode.PUSH);
+            Add(value);
+        }
+
+        public void Push(char value)
+        {
             Debug($"PUSH {value}");
             Add(OpCode.PUSH);
             Add(value);
