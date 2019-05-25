@@ -7,7 +7,8 @@ namespace StackMachine
 {
     enum OpCode
     {
-        PUSH = 1,
+        NOP = 0,
+        PUSH,
         POP,
         POPT, //pops (sizeof(type)) N length bytes
         POP2, //pops 2 length bytes
@@ -22,13 +23,14 @@ namespace StackMachine
         GT,
         LT,
         STORE, //stores a new variable in the environment with the pop of the stack
-        LOOKUP, //looks for a variable in the env and pushes it at the top of the stack
+        LOOKUP_LOCAL, //looks for a variable in the env and pushes it at the top of the stack
+        MODULE, //module
+        LOOKUP_GLOBAL, // globals do not exist, theyre just local to modules
         PRINT,
         DEBUG, //prints debug information
         JMP, //jump
         JMPCMP, //conditional jump
-        BLOCK, //closure
-        ENDBLOCK, //end closure
+        CLOSURE, //create closure
         APP, //a function call
         RET, //return from function call
         QUIT, //end the program
@@ -43,9 +45,15 @@ namespace StackMachine
         BOOL,
         CHAR,
         SYMBOL,
+        NIL, //null
         STRING, //reference types
-        FUNCTION, //closure
-        PAIR
+        CLOSURE, //closure
+        PAIR,
+        VECTOR,
+        STRUCT,
+
+        //Internal use only
+        UPVALUE
     };
 
     /// <summary>

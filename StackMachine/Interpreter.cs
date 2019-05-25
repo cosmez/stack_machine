@@ -7,6 +7,7 @@ namespace StackMachine
 {
     /// <summary>
     /// OPCodes retrieved from the ByteCodes
+    /// TODO: how do we pass arguments in a efficient way
     /// </summary>
     class Interpreter : Stack<Value>
     {
@@ -33,6 +34,7 @@ namespace StackMachine
 
         public void Execute(Bytecode bytecode, Environment environment)
         {
+            var globalEnvironment = environment;
             while (PC < bytecode.Bytecodes.Length)
             {
                 Thread.Sleep(100);
@@ -86,13 +88,15 @@ namespace StackMachine
                     case OpCode.STORE:
                         {
                             string storeLiteral = bytecode.Symbols[bytecode.Bytecodes[PC++].i32];
-                            environment.Add(storeLiteral, Pop());
+                            var value = Pop();
+                            environment.Add(storeLiteral, value);
                             break;
                         }
-                    case OpCode.LOOKUP:
+                    case OpCode.LOOKUP_LOCAL:
                         {
                             var lookupLiteral = bytecode.Symbols[bytecode.Bytecodes[PC++].i32];
-                            Push(environment.Lookup(lookupLiteral));
+                            var value = environment.Lookup(lookupLiteral);
+                            Push(value);
                             break;
                         }
                     case OpCode.ADD:
@@ -200,14 +204,112 @@ namespace StackMachine
                             }
                             break;
                         }
-                    //function call
+                    case OpCode.CLOSURE:
+                        {
+                            /*
+                                A Closure has to capture variables from the current Environment creating a copy at the time the Closure was created.
+                                this means that every captured variable will be a new reference in the Store. 
+
+                                The new Environment needs to to point to the new Store references, maybe an OpCode could be used to hint
+                                the interpreter to only capture the variables it needs because capturing everything will be expensive 
+                                on huge environments.
+
+                                |-------------+--------------+---|
+                                | Env E1      |              |   |
+                                | var a = 10; |              |   |
+                                |             | ------------ |   |
+                                |             | Env E1       |   |
+                                |             | var c = 30;  |   |
+                                |             | var b = 20;  |   |
+                                +-------------+--------------+---+
+
+                                Symbol Table:
+                                | Loc | Symbol |
+                                |-----+--------|
+                                |   5 | a      |
+                                |   9 | b      |
+                                |  16 | c      |
+                                +-----+--------+
+                                Environment:
+                                | Env | Symbol | Ref |
+                                |-----+--------+-----|
+                                | E1  | a      |   7 |
+                                | E2  | a      |   8 |
+                                | E2  | b      |   9 |
+                                | E3  | c      |  10 |
+                                +-----+--------+-----+
+                                Store:
+                                | Loc | Type     | Val |                             |
+                                |-----+----------+-----+-----------------------------|
+                                |   0 | CLOSURE  | 002 | closure points to PC        |
+                                |   1 | NUMBER   |   3 | Closure captured references |
+                                |   2 | UPVALUE  |   5 | Env Reference a             |
+                                |   3 | UPVALUE  |   9 | Env Reference b             |
+                                |   4 | UPVALUE  |  16 | Env Reference c             |
+                                |  .. | ..       |  .. |                             |
+                                |   7 | INT      |  10 | Previous Environment a = 10 |
+                                |   8 | INT      |  10 | New Environment a = 10      |
+                                |   9 | INT      |  20 | b = 20                      |
+                                |  10 | INT      |  30 | c = 30                      |
+                                +-----+----------+-----+-----------------------------+
+                             * */
+                            var closure = new Value() { type = ValueType.CLOSURE, i32 = PC++ }; //get the closure
+                            var closeUpValues = bytecode.Bytecodes[PC++];
+                            var arguments = new Value[closeUpValues.i32]; //get the number of upvalues
+                            for (int i = arguments.Length-1; i >= 0; i--) 
+                            {
+                                Push(bytecode.Bytecodes[PC++]);  //push upvalues
+                            }
+
+                            Push(closeUpValues);
+                            Push(closure);
+                            break;
+                        }
+                    //the function itself should be retrieved from the stack
+                    //the closure contains all the necessary information to execute
+                    //what we need after the application is the number of arguments to POP
                     case OpCode.APP:
                         {
+                            //number of arguments to get
+                            int argumentCount = bytecode.Bytecodes[PC].i32;
+                            //where to we store the arguments?
+                            //using the stack would be inefficient
+
+                            //closure
+                            var closure = Pop();
+                            if (closure.type != ValueType.CLOSURE)
+                            {
+                                throw new Exception($"Expected a Closure, got a {closure.type} instead");
+                            }
+                            var upValueCount = Pop();
+                            if (upValueCount.type != ValueType.INT)
+                            {
+                                throw new Exception("Expected a number of upvalues");
+                            }
+
+                            //clone the environment here
+                            string[] upvalues = new string[upValueCount.i32];
+                            for (int i = 0; i < upValueCount.i32; i++)
+                            {
+                                upvalues[i] = bytecode.Symbols[Pop().i32];
+                            }
+
+
+                            //main environment becomes parent
+                            environment = environment.ClosureEnvironment(upvalues);
+
+
+                            //push return address at the top of the stack
+                            Push(new Value() { type = ValueType.INT, i32 = closure.i32 });
+                            
+
                             //store return address after frame pointer
-                            Push(new Value() { type = ValueType.INT, i32 = PC + 1 });
+                            //Push(new Value() { type = ValueType.INT, i32 = PC + 1 });
                             //point frame pointer to top of the stack
                             FP = this.Count;
+
                             //here we have to switch the environment
+
                             //move to procedure location
                             PC = bytecode.Bytecodes[PC].i32;
                             break;
@@ -216,6 +318,7 @@ namespace StackMachine
                     case OpCode.RET:
                         {
                             //here we have to restore the environment
+                            environment = environment.Parent;
                             var returnValue = Pop();
                             while (Count > FP) Pop();
                             PC = Pop().i32;

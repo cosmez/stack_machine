@@ -57,6 +57,9 @@ namespace StackMachine
         private void Add(bool value) =>
             Bytecode.Add(new Value() { type = ValueType.BOOL, b = value });
 
+        private void AddNil() =>
+            Bytecode.Add(new Value() { type = ValueType.NIL, i32 =  0});
+
         /// <summary>
         /// Adds A Symbol
         /// </summary>
@@ -92,7 +95,7 @@ namespace StackMachine
 
         public void Push(string value)
         {
-            Debug($"PUSH {value}");
+            Debug($"PUSH '{value}");
             Add(OpCode.PUSH);
             Add(value);
         }
@@ -116,6 +119,13 @@ namespace StackMachine
             Debug($"PUSH {value}");
             Add(OpCode.PUSH);
             Add(value);
+        }
+
+        public void Nil()
+        {
+            Debug($"PUSH NIL"); 
+            Add(OpCode.PUSH);
+            AddNil();
         }
 
         public void Pop()
@@ -148,10 +158,10 @@ namespace StackMachine
             Add(Symbols.IndexOf(name));
         }
 
-        public void Lookup(string name)
+        public void LookupLocal(string name)
         {
-            Debug($"LOOKUP {name}");
-            Add(OpCode.LOOKUP);
+            Debug($"LOCAL {name}");
+            Add(OpCode.LOOKUP_LOCAL);
             Add(Symbols.IndexOf(name));
         }
 
@@ -172,7 +182,7 @@ namespace StackMachine
         /// <param name="label"></param>
         public void Jump(OpCode opCode,string label)
         {
-            Debug($"JUMP[{opCode}] {label}");
+            Debug($"{opCode} {label}");
             Add(opCode);
             if (!Labels.ContainsKey(label))
             {
@@ -193,6 +203,21 @@ namespace StackMachine
 
         public void App(string label) =>
             Jump(OpCode.APP, label);
+
+
+        /// <summary>
+        /// Closure, first class functions
+        /// </summary>
+        /// <param name="name"></param>
+        public void Closure(string function, params string[] upvalues)
+        {
+            Jump(OpCode.CLOSURE, function);
+            Add(upvalues.Length);
+            foreach (var symbol in upvalues)
+            {
+                Bytecode.Add(new Value() { type = ValueType.UPVALUE, i32 = Symbols.IndexOf(symbol) });
+            }
+        }
 
         public void Ret()
         {
@@ -219,16 +244,8 @@ namespace StackMachine
             Debug("QUIT");
             Add(OpCode.QUIT);
         }
-        public void Block()
-        {
-            Debug("BLOCK");
-            Add(OpCode.BLOCK);
-        }
-        public void EndBlock()
-        {
-            Debug("ENDBLOCK");
-            Add(OpCode.ENDBLOCK);
-        }
+
+
 
 
 
