@@ -27,6 +27,15 @@ namespace StackMachine
             this.Env.Add(name, reference);
         }
 
+        public void Add(string name, int value) =>
+            Add(name, new Value { type = ValueType.INT, i32 = value });
+        public void Add(string name, bool value) =>
+            Add(name, new Value { type = ValueType.BOOL, b = value });
+        public void Add(string name, char value) =>
+            Add(name, new Value { type = ValueType.CHAR, c = value });
+        public void Add(string name, float value) =>
+            Add(name, new Value { type = ValueType.NUMBER, fl = value });
+
         public Value Lookup(string name)
         {
             if (this.Env.ContainsKey(name))
@@ -52,7 +61,7 @@ namespace StackMachine
         /// </summary>
         /// <param name="upvalues"></param>
         /// <returns></returns>
-        public Environment ClosureEnvironment(params string[] upvalues)
+        public Environment ClosureEnvironment(ReadOnlySpan<string> upvalues)
         {
             Environment env = new Environment(Store);
             foreach (var value in upvalues)

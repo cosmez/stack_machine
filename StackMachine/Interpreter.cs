@@ -7,7 +7,6 @@ namespace StackMachine
 {
     /// <summary>
     /// OPCodes retrieved from the ByteCodes
-    /// TODO: Environments need to be first-class to implement closures
     /// TODO: how do we pass arguments in a efficient way
     /// </summary>
     class Interpreter : Stack<Value>
@@ -37,7 +36,7 @@ namespace StackMachine
         }
 
         
-		public Interpreter()
+		public Interpreter() : base(1000)
         {
             PC = 0;
             FP = 0;
@@ -50,6 +49,7 @@ namespace StackMachine
 
         public void Execute(Bytecode bytecode, Environment rootEnv)
         {
+            Span<Value> innerStack = stackalloc Value[1000];
             Envs.Add(0, rootEnv); //global environment
             while (PC < bytecode.Bytecodes.Length)
             {
@@ -243,9 +243,9 @@ namespace StackMachine
                             Push(closure);
                             //create new environment with upvalues
                             var closeUpValues = bytecode.Bytecodes[PC++];
-                            var arguments = new Value[closeUpValues.i32]; //get the number of upvalues
-                            string[] upvalues = new string[closeUpValues.i32];
-                            for (int i = 0; i < arguments.Length; i++) 
+                            //ReadOnlySpan<Value> arguments = stackalloc Value[closeUpValues.i32]; //get the number of upvalues
+                            var upvalues =  new string[closeUpValues.i32];
+                            for (int i = 0; i < closeUpValues.i32; i++) 
                             {
                                 upvalues[i] = bytecode.Symbols[bytecode.Bytecodes[PC++].i32];
                             }

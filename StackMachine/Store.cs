@@ -6,11 +6,13 @@ namespace StackMachine
 {
     class Store
     {
-		List<Value> storage { get; set; }
+        public Memory<Value> Memory { get; }
+        int _idx = 0;
 
-        public Store()
+        public Store(int initialMemory = 5000)
         {
-            storage = new List<Value>();
+            Memory = new Value[initialMemory];
+            _idx = 0;
         }
         
         public void Print()
@@ -20,13 +22,34 @@ namespace StackMachine
 
         public int Add(Value value)
         {
-            storage.Add(value);
-            return storage.Count-1;
+            Memory.Span[_idx] = value;
+            return _idx++;
         }
+
+        public int Add(int value) =>
+            Add(new Value { type = ValueType.INT, i32 = value });
+        public int Add(float value) =>
+            Add(new Value { type = ValueType.INT, fl = value });
+        public int Add(bool value) =>
+            Add(new Value { type = ValueType.INT, b = value });
+        public int Add(char value) =>
+            Add(new Value { type = ValueType.INT, c = value });
+        public int Add(ValueType type, int value) =>
+            Add(new Value { type = type, i32 = value });
+
+        public int Add(Span<Value> values)
+        {
+            foreach (var value in values)
+            {
+                values[_idx++] = value;
+            }
+            return _idx-1;
+        }
+
 
         public Value Get(int reference)
         {
-            return storage[reference];
+            return Memory.Span[reference];
         }
     }
 }
