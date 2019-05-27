@@ -27,15 +27,15 @@ namespace StackMachine
         }
 
         public int Add(int value) =>
-            Add(new Value { type = ValueType.INT, i32 = value });
+            Add(new Value(ValueType.INT, value));
         public int Add(float value) =>
-            Add(new Value { type = ValueType.INT, fl = value });
+            Add(new Value(ValueType.INT, value));
         public int Add(bool value) =>
-            Add(new Value { type = ValueType.INT, b = value });
+            Add(new Value(ValueType.INT, value));
         public int Add(char value) =>
-            Add(new Value { type = ValueType.INT, c = value });
+            Add(new Value(ValueType.INT, value));
         public int Add(ValueType type, int value) =>
-            Add(new Value { type = type, i32 = value });
+            Add(new Value(ValueType.INT, value));
 
         public int Add(Span<Value> values)
         {

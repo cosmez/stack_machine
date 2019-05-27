@@ -239,7 +239,7 @@ namespace StackMachine
                                 |  80 | FUNCTION |  .. | Function Location           |
                                 +-----+----------+-----+-----------------------------+
                              * */
-                            var closure = new Value() { type = ValueType.CLOSURE, i32 = bytecode.Bytecodes[PC++].i32 }; //get the closure
+                            var closure = new Value(ValueType.CLOSURE, bytecode.Bytecodes[PC++].i32); //get the closure
                             Push(closure);
                             //create new environment with upvalues
                             var closeUpValues = bytecode.Bytecodes[PC++];
@@ -309,11 +309,11 @@ namespace StackMachine
 
         }
 
-        void Push(int value) => Push(new Value() { type = ValueType.INT, i32 = value });
-        void Push(float value) => Push(new Value() { type = ValueType.NUMBER, fl = value });
-        void Push(bool value) => Push(new Value() { type = ValueType.BOOL, b = value });
-        void Push(char value) => Push(new Value() { type = ValueType.SYMBOL, c = value });
-        void PushNil() => Push(new Value() { type = ValueType.NIL, i32 =  0 });
+        void Push(int value) => Push(new Value(ValueType.INT, value));
+        void Push(float value) => Push(new Value(ValueType.NUMBER, value));
+        void Push(bool value) => Push(new Value(ValueType.NUMBER, value));
+        void Push(char value) => Push(new Value(ValueType.NUMBER, value));
+        void PushNil() => Push(new Value(ValueType.NIL, 0));
 
         void Print()
         {

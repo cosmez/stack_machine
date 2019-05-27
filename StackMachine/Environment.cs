@@ -28,13 +28,13 @@ namespace StackMachine
         }
 
         public void Add(string name, int value) =>
-            Add(name, new Value { type = ValueType.INT, i32 = value });
+            Add(name, new Value(ValueType.INT, value));
         public void Add(string name, bool value) =>
-            Add(name, new Value { type = ValueType.BOOL, b = value });
+            Add(name, new Value(ValueType.INT, value));
         public void Add(string name, char value) =>
-            Add(name, new Value { type = ValueType.CHAR, c = value });
+            Add(name, new Value(ValueType.INT, value));
         public void Add(string name, float value) =>
-            Add(name, new Value { type = ValueType.NUMBER, fl = value });
+            Add(name, new Value(ValueType.INT, value));
 
         public Value Lookup(string name)
         {

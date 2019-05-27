@@ -63,19 +63,45 @@ namespace StackMachine
     /// This is the basic Value, it supports basic Value types and a CDR pointer to the next element
     /// </summary>
     [StructLayout(LayoutKind.Explicit)]
-    struct Value
+    readonly struct Value
     {
         [FieldOffset(0)]
-        public ValueType type;
+        public readonly ValueType type;
         //pointer or value of the first field
         [FieldOffset(sizeof(ValueType))]
-        public int i32; 
+        public readonly int i32; 
         [FieldOffset(sizeof(ValueType))]
-        public float fl;
+        public readonly float fl;
         [FieldOffset(sizeof(ValueType))]
-        public char c;
+        public readonly char c;
         [FieldOffset(sizeof(ValueType))]
-        public bool b;
+        public readonly bool b;
+
+        ///why this() ?
+        ///https://github.com/dotnet/roslyn/issues/7323
+        public Value(ValueType type,  int value) : this()
+        {
+            this.i32 = value;
+            this.type = type;
+        }
+
+        public Value(ValueType type, float value) : this()
+        {
+            this.fl = value;
+            this.type = type;
+        }
+
+        public Value(ValueType type, bool value) : this()
+        {
+            this.b  = value;
+            this.type = type;
+        }
+
+        public Value(ValueType type, char value) : this()
+        {
+            this.c = value;
+            this.type = type;
+        }
 
         public override String ToString()
         {

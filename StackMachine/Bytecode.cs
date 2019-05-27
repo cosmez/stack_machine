@@ -44,22 +44,22 @@ namespace StackMachine
 
 
         private void Add(OpCode opCode) =>
-            Bytecode.Add(new Value() { type = ValueType.INT, i32 = (int)opCode });
+            Bytecode.Add(new Value(ValueType.INT, (int)opCode));
 
         private void Add(int value) =>
-            Bytecode.Add(new Value() { type = ValueType.INT, i32 = value });
+            Bytecode.Add(new Value(ValueType.INT, value));
 
         private void Add(float value) =>
-            Bytecode.Add(new Value() { type = ValueType.NUMBER, fl = value });
+            Bytecode.Add(new Value(ValueType.INT, value));
 
         private void Add(char value) =>
-            Bytecode.Add(new Value() { type = ValueType.CHAR, c = value });
+            Bytecode.Add(new Value(ValueType.INT, value));
 
         private void Add(bool value) =>
-            Bytecode.Add(new Value() { type = ValueType.BOOL, b = value });
+            Bytecode.Add(new Value(ValueType.INT, value));
 
         private void AddNil() =>
-            Bytecode.Add(new Value() { type = ValueType.NIL, i32 =  0});
+            Bytecode.Add(new Value(ValueType.NIL, 0));
 
         /// <summary>
         /// Adds A Symbol
@@ -68,7 +68,7 @@ namespace StackMachine
         private void Add(string symbol)
         {
             if (!Symbols.Contains(symbol)) Symbols.Add(symbol);
-            Bytecode.Add(new Value() { type = ValueType.SYMBOL, i32 = Symbols.IndexOf(symbol) });
+            Bytecode.Add(new Value(ValueType.SYMBOL, Symbols.IndexOf(symbol)) );
         }
 
 
@@ -222,7 +222,7 @@ namespace StackMachine
             Add(upvalues.Length);
             foreach (var symbol in upvalues)
             {
-                Bytecode.Add(new Value() { type = ValueType.UPVALUE, i32 = Symbols.IndexOf(symbol) });
+                Bytecode.Add(new Value(ValueType.UPVALUE, Symbols.IndexOf(symbol)));
             }
         }
 
@@ -274,7 +274,7 @@ namespace StackMachine
                         int newReference = Labels[name];
                         if (newReference != 0)
                         {
-                            Bytecode[i] = new Value() { type = ValueType.INT, i32 = newReference };
+                            Bytecode[i] = new Value(ValueType.INT, newReference);
                             undefinedLabels.Remove(i);
                         }
                     }
