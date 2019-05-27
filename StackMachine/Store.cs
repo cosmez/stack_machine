@@ -46,6 +46,13 @@ namespace StackMachine
             return _idx-1;
         }
 
+        public Value this[int reference]
+        {
+            get
+            {
+                return Memory.Span[reference];
+            }
+        }
 
         public Value Get(int reference)
         {
