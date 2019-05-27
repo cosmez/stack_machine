@@ -39,7 +39,7 @@ namespace StackMachine
         public Value Lookup(string name)
         {
             if (this.Env.ContainsKey(name))
-                return this.Store.Get(this.Env[name]);
+                return this.Store[this.Env[name]];
             if (this.Parent != null)
                 return this.Parent.Lookup(name);
 
@@ -50,7 +50,7 @@ namespace StackMachine
         {
             foreach (var entry in Env)
             {
-                Console.WriteLine($"{entry.Key} \t=\t {this.Store.Get(entry.Value)}");
+                Console.WriteLine($"{entry.Key} \t=\t {this.Store[entry.Value]}");
             }
         }
 
