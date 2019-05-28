@@ -71,13 +71,13 @@ namespace StackMachine
                         Push(_stack, bytecode.Bytecodes[PC++]);
                         break;
                     case OpCode.NIL:
-                        PushNil(_stack);
+                        Push(_stack, Value.Nil);
                         break;
                     case OpCode.FALSE:
-                        Push(_stack, false);
+                        Push(_stack, Value.False);
                         break;
                     case OpCode.TRUE:
-                        Push(_stack, true);
+                        Push(_stack, Value.True);
                         break;
                     case OpCode.POP:
                         Pop(_stack);
@@ -305,13 +305,12 @@ namespace StackMachine
 
         }
 
-        Value Pop(Span<Value> Stack) => Stack[Top--];
+        Value Pop(Span<Value> Stack) => Stack[--Top];
         void Push(Span<Value> Stack, Value value) { Stack[Top++] = value;  }
         void Push(Span<Value> Stack, int value) { Push(Stack,new Value(value)); }
         void Push(Span<Value> Stack, bool value) { Push(Stack, new Value(value)); }
         void Push(Span<Value> Stack, char value) { Push(Stack, new Value(value)); }
         void Push(Span<Value> Stack, float value) { Push(Stack, new Value(value)); }
-        void PushNil(Span<Value> Stack) { Push(Stack, new Value(ValueType.NIL, 0)); }
 
 
         void Print()

@@ -44,13 +44,12 @@ namespace StackMachine
 
     enum ValueType
     {
-        //value types
-        INT = 0,
+        NIL = 0,
+        INT,
         NUMBER,
         BOOL,
         CHAR,
         SYMBOL,
-        NIL, //null
         STRING, //reference types
         CLOSURE, //closure
         PAIR,
@@ -78,6 +77,14 @@ namespace StackMachine
         public readonly char c;
         [FieldOffset(sizeof(ValueType))]
         public readonly bool b;
+
+        private static Value nilValue = new Value(ValueType.NIL, 0);
+        private static Value trueValue = new Value(true);
+        private static Value falseValue = new Value(false);
+        public static ref readonly Value Nil => ref nilValue;
+        public static ref readonly Value True => ref trueValue;
+        public static ref readonly Value False => ref falseValue;
+
 
         ///why this() ?
         ///https://github.com/dotnet/roslyn/issues/7323
