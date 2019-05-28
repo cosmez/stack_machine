@@ -12,10 +12,12 @@ namespace StackMachine
         TRUE,  //pushes nil on top of the stack
         FALSE, //pushes false on top of the stack
         NIL, //pushes nil on top of the stack
+        PUSH_ARRAY,
         POP,
         POPT, //pops (sizeof(type)) N length bytes
         POP2, //pops 2 length bytes
         POP4, //pops 4 length bytes
+
         DUP, //duplicates the contents at the top of the stack
         ADD,
         ADD1,
@@ -52,7 +54,7 @@ namespace StackMachine
         STRING, //reference types
         CLOSURE, //closure
         PAIR,
-        VECTOR,
+        ARRAY,
         STRUCT,
 
         //Internal use only
@@ -85,22 +87,28 @@ namespace StackMachine
             this.type = type;
         }
 
-        public Value(ValueType type, float value) : this()
+        public Value(int value) : this()
+        {
+            this.i32 = value;
+            this.type = ValueType.NUMBER;
+        }
+
+        public Value(float value) : this()
         {
             this.fl = value;
-            this.type = type;
+            this.type = ValueType.NUMBER;
         }
 
-        public Value(ValueType type, bool value) : this()
+        public Value(bool value) : this()
         {
             this.b  = value;
-            this.type = type;
+            this.type = ValueType.BOOL;
         }
 
-        public Value(ValueType type, char value) : this()
+        public Value(char value) : this()
         {
             this.c = value;
-            this.type = type;
+            this.type = ValueType.CHAR;
         }
 
         public override String ToString()

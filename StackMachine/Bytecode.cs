@@ -47,16 +47,16 @@ namespace StackMachine
             Bytecode.Add(new Value(ValueType.INT, (int)opCode));
 
         private void Add(int value) =>
-            Bytecode.Add(new Value(ValueType.INT, value));
+            Bytecode.Add(new Value(value));
 
         private void Add(float value) =>
-            Bytecode.Add(new Value(ValueType.INT, value));
+            Bytecode.Add(new Value(value));
 
         private void Add(char value) =>
-            Bytecode.Add(new Value(ValueType.INT, value));
+            Bytecode.Add(new Value(value));
 
         private void Add(bool value) =>
-            Bytecode.Add(new Value(ValueType.INT, value));
+            Bytecode.Add(new Value(value));
 
         private void AddNil() =>
             Bytecode.Add(new Value(ValueType.NIL, 0));

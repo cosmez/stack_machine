@@ -27,24 +27,27 @@ namespace StackMachine
         }
 
         public int Add(int value) =>
-            Add(new Value(ValueType.INT, value));
+            Add(new Value(value));
         public int Add(float value) =>
-            Add(new Value(ValueType.INT, value));
+            Add(new Value(value));
         public int Add(bool value) =>
-            Add(new Value(ValueType.INT, value));
+            Add(new Value(value));
         public int Add(char value) =>
-            Add(new Value(ValueType.INT, value));
+            Add(new Value(value));
         public int Add(ValueType type, int value) =>
-            Add(new Value(ValueType.INT, value));
+            Add(new Value(value));
 
-        public int Add(Span<Value> values)
+
+        public int Add(ValueType type, Span<Value> values)
         {
+            values[_idx++] = new Value(ValueType.ARRAY, values.Length);
             foreach (var value in values)
             {
                 values[_idx++] = value;
             }
             return _idx-1;
         }
+
 
         public Value this[int reference]
         {

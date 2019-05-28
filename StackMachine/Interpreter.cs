@@ -9,7 +9,7 @@ namespace StackMachine
     /// OPCodes retrieved from the ByteCodes
     /// TODO: how do we pass arguments in a efficient way
     /// </summary>
-    class Interpreter : Stack<Value>
+    class Interpreter
     {
         /// <summary>
         /// Program Counter
@@ -19,6 +19,7 @@ namespace StackMachine
         /// Frame Pointer
         /// </summary>
 		private int FP { get; set; }
+        private int Top { get; set; }
         /// <summary>
         /// Current Environment
         /// </summary>
@@ -36,20 +37,20 @@ namespace StackMachine
         }
 
         
-		public Interpreter() : base(1000)
+		public Interpreter() 
         {
             PC = 0;
             FP = 0;
+            Top = 0;
             Envs = new Dictionary<int, Environment>();
         }
 
-        public Interpreter(IEnumerable<Value> collection) : base(collection)
-        {
-        }
 
         public void Execute(Bytecode bytecode, Environment rootEnv)
         {
-            Span<Value> innerStack = stackalloc Value[1000];
+            PC = 0;
+            FP = 0;
+            Span<Value> _stack = stackalloc Value[1000];
             Envs.Add(0, rootEnv); //global environment
             while (PC < bytecode.Bytecodes.Length)
             {
@@ -67,30 +68,30 @@ namespace StackMachine
                 switch (opCode)
                 {
                     case OpCode.PUSH:
-                        Push(bytecode.Bytecodes[PC++]);
+                        Push(_stack, bytecode.Bytecodes[PC++]);
                         break;
                     case OpCode.NIL:
-                        PushNil();
+                        PushNil(_stack);
                         break;
                     case OpCode.FALSE:
-                        Push(false);
+                        Push(_stack, false);
                         break;
                     case OpCode.TRUE:
-                        Push(true);
+                        Push(_stack, true);
                         break;
                     case OpCode.POP:
-                        Pop();
+                        Pop(_stack);
                         break;
                     case OpCode.DUP:
                         {
-                            var value = Pop();
-                            Push(value);
-                            Push(value);
+                            var value = Pop(_stack);
+                            Push(_stack, value);
+                            Push(_stack, value);
                             break;
                         }
                     case OpCode.PRINT:
                         {
-                            var value = Pop();
+                            var value = Pop(_stack);
                             if (value.type == ValueType.INT || value.type == ValueType.NUMBER
                                 || value.type == ValueType.CHAR || value.type == ValueType.BOOL)
                             {
@@ -109,7 +110,7 @@ namespace StackMachine
                     case OpCode.STORE:
                         {
                             string storeLiteral = bytecode.Symbols[bytecode.Bytecodes[PC++].i32];
-                            var value = Pop();
+                            var value = Pop(_stack);
                             Env.Add(storeLiteral, value);
                             break;
                         }
@@ -117,46 +118,46 @@ namespace StackMachine
                         {
                             var lookupLiteral = bytecode.Symbols[bytecode.Bytecodes[PC++].i32];
                             var value = Env.Lookup(lookupLiteral);
-                            Push(value);
+                            Push(_stack, value);
                             break;
                         }
                     case OpCode.ADD:
                         {
-                            var value1 = Pop();
-                            var value2 = Pop();
+                            var value1 = Pop(_stack);
+                            var value2 = Pop(_stack);
                             if (value1.type == ValueType.INT && value2.type == ValueType.INT)
-                                Push(value1.i32 + value2.i32);
+                                Push(_stack, value1.i32 + value2.i32);
                             else if (value1.type == ValueType.NUMBER && value2.type == ValueType.NUMBER)
-                                Push(value1.fl + value2.fl);
+                                Push(_stack, value1.fl + value2.fl);
                             else
                                 throw new Exception("Invalid types for OP_ADD");
                             break;
                         }
                     case OpCode.ADD1:
                         {
-                            var value1 = Pop();
-                            if (value1.type == ValueType.INT) Push(value1.i32 + 1);
-                            else if (value1.type == ValueType.NUMBER) Push(value1.fl + 1f);
+                            var value1 = Pop(_stack);
+                            if (value1.type == ValueType.INT) Push(_stack, value1.i32 + 1);
+                            else if (value1.type == ValueType.NUMBER) Push(_stack, value1.fl + 1f);
                             else throw new Exception("Invalid types for OP_ADD");
                             break;
                         }
                     case OpCode.SUB:
                         {
-                            var value1 = Pop();
-                            var value2 = Pop();
+                            var value1 = Pop(_stack);
+                            var value2 = Pop(_stack);
                             if (value1.type == ValueType.INT && value2.type == ValueType.INT)
-                                Push(value2.i32 - value1.i32);
+                                Push(_stack, value2.i32 - value1.i32);
                             else if (value1.type == ValueType.NUMBER && value2.type == ValueType.NUMBER)
-                                Push(value2.fl - value1.fl);
+                                Push(_stack,value2.fl - value1.fl);
                             else
                                 throw new Exception("Invalid types for SUB"); ;
                             break;
                         }
                     case OpCode.SUB1:
                         {
-                            var value = Pop();
-                            if (value.type == ValueType.INT) Push(value.i32 - 1);
-                            else if (value.type == ValueType.NUMBER) Push(value.fl - 1.0f);
+                            var value = Pop(_stack);
+                            if (value.type == ValueType.INT) Push(_stack, value.i32 - 1);
+                            else if (value.type == ValueType.NUMBER) Push(_stack, value.fl - 1.0f);
                             else throw new Exception("Invalid types for SUB1");
                             break;
                         }
@@ -168,7 +169,7 @@ namespace StackMachine
                     case OpCode.JMPCMP:
                         {
                             var _newPC = bytecode.Bytecodes[PC++].i32;
-                            var value = Pop();
+                            var value = Pop(_stack);
                             if ((value.type == ValueType.BOOL && value.b) ||
                                 (value.type == ValueType.INT && value.i32 == 0))
                             {
@@ -180,7 +181,7 @@ namespace StackMachine
                     case OpCode.JNE:
                         {
                             var _newPC = bytecode.Bytecodes[PC++].i32;
-                            var value = Pop();
+                            var value = Pop(_stack);
                             if (value.b)
                             {
                                 PC = _newPC;
@@ -208,12 +209,7 @@ namespace StackMachine
 
                                 Symbol Table:
                                 | Loc | Symbol |
-                                |-----+--------|
-                                |   5 | a      |
-                                |   9 | b      |
-                                |  16 | c      |
-                                +-----+--------+
-                                Environment:
+
                                 | Env | Symbol | Ref |
                                 |-----+--------+-----|
                                 | E1  | a      |   7 |
@@ -240,7 +236,7 @@ namespace StackMachine
                                 +-----+----------+-----+-----------------------------+
                              * */
                             var closure = new Value(ValueType.CLOSURE, bytecode.Bytecodes[PC++].i32); //get the closure
-                            Push(closure);
+                            Push(_stack, closure);
                             //create new environment with upvalues
                             var closeUpValues = bytecode.Bytecodes[PC++];
                             //ReadOnlySpan<Value> arguments = stackalloc Value[closeUpValues.i32]; //get the number of upvalues
@@ -265,21 +261,21 @@ namespace StackMachine
                             //using the stack would be inefficient
 
                             //closure
-                            var closure = Pop();
+                            var closure = Pop(_stack);
                             if (closure.type != ValueType.CLOSURE)
                             {
                                 throw new Exception($"Expected a Closure, got a {closure.type} instead");
                             }
 
 
-                            Push(PC+1); //push return address at the top of the stack
-                            Push(CurrentEnv); //push current environment
+                            Push(_stack, PC + 1); //push return address at the top of the stack
+                            Push(_stack,CurrentEnv); //push current environment
                             
 
                             //store return address after frame pointer
                             //Push(new Value() { type = ValueType.INT, i32 = PC + 1 });
                             //point frame pointer to top of the stack
-                            FP = this.Count;
+                            FP = Top;
 
                             //here we have to switch the environment
 
@@ -293,12 +289,12 @@ namespace StackMachine
                     case OpCode.RET:
                         {
                             //return value
-                            var returnValue = Pop();
+                            var returnValue = Pop(_stack);
 
-                            while (Count > FP) Pop();
-                            CurrentEnv = Pop().i32; //previous environment
-                            PC = Pop().i32; //return address
-                            Push(returnValue);
+                            while (Top > FP) Pop(_stack);
+                            CurrentEnv = Pop(_stack).i32; //previous environment
+                            PC = Pop(_stack).i32; //return address
+                            Push(_stack, returnValue);
                             break;
                         }
                     case OpCode.QUIT:
@@ -309,11 +305,14 @@ namespace StackMachine
 
         }
 
-        void Push(int value) => Push(new Value(ValueType.INT, value));
-        void Push(float value) => Push(new Value(ValueType.NUMBER, value));
-        void Push(bool value) => Push(new Value(ValueType.NUMBER, value));
-        void Push(char value) => Push(new Value(ValueType.NUMBER, value));
-        void PushNil() => Push(new Value(ValueType.NIL, 0));
+        Value Pop(Span<Value> Stack) => Stack[Top--];
+        void Push(Span<Value> Stack, Value value) { Stack[Top++] = value;  }
+        void Push(Span<Value> Stack, int value) { Push(Stack,new Value(value)); }
+        void Push(Span<Value> Stack, bool value) { Push(Stack, new Value(value)); }
+        void Push(Span<Value> Stack, char value) { Push(Stack, new Value(value)); }
+        void Push(Span<Value> Stack, float value) { Push(Stack, new Value(value)); }
+        void PushNil(Span<Value> Stack) { Push(Stack, new Value(ValueType.NIL, 0)); }
+
 
         void Print()
         {
