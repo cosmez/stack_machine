@@ -10,8 +10,8 @@ namespace StackMachine
         public string[] Symbols;
         public bool IsDebugging;
 
-        public Dictionary<int, string> DebugInfo { get; set; }
-        public Bytecode(Value[] bytecode, string[] symbols, bool isDebugging = false, Dictionary<int, string> debugInfo = null)
+        public Dictionary<int, string>? DebugInfo { get; set; }
+        public Bytecode(Value[] bytecode, string[] symbols, bool isDebugging = false, Dictionary<int, string>? debugInfo = null)
         {
             this.Bytecodes = bytecode;
             this.Symbols = symbols;
@@ -22,10 +22,10 @@ namespace StackMachine
 
     class BytecodeWriter
     {
-        public List<Value> Bytecode;
-        List<string> Symbols;
-        Dictionary<string, int> Labels;
-        Dictionary<int, string> undefinedLabels;
+        public readonly List<Value> Bytecode;
+        readonly List<string> Symbols;
+        readonly Dictionary<string, int> Labels;
+        readonly Dictionary<int, string> undefinedLabels;
         const int PLACEHOLDER_LABEL = 0;
         //debugging information
         public bool IsDebugging { get; set; } = false;

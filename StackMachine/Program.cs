@@ -5,7 +5,7 @@ namespace StackMachine
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
 
             var compiler = new BytecodeWriter(debugging: true);

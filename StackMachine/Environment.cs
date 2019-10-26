@@ -7,7 +7,7 @@ namespace StackMachine
     class Environment
     {
         Dictionary<string, int> Env { get; set; }
-        public Environment Parent { get; set; }
+        public Environment? Parent { get; set; }
         Store Store { get; set; }
 		public Environment(Store store)
         {

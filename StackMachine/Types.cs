@@ -78,9 +78,9 @@ namespace StackMachine
         [FieldOffset(sizeof(ValueType))]
         public readonly bool b;
 
-        private static Value nilValue = new Value(ValueType.NIL, 0);
-        private static Value trueValue = new Value(true);
-        private static Value falseValue = new Value(false);
+        private static readonly Value nilValue = new Value(ValueType.NIL, 0);
+        private static readonly Value trueValue = new Value(true);
+        private static readonly Value falseValue = new Value(false);
         public static ref readonly Value Nil => ref nilValue;
         public static ref readonly Value True => ref trueValue;
         public static ref readonly Value False => ref falseValue;
@@ -118,21 +118,16 @@ namespace StackMachine
             this.type = ValueType.CHAR;
         }
 
-        public override String ToString()
+        public readonly override String ToString()
         {
-            switch (type)
+            return type switch
             {
-                case ValueType.INT:
-                    return $"n: {i32}";
-                case ValueType.BOOL:
-                    return $"b: {b}";
-                case ValueType.CHAR:
-                    return $"c: {c}";
-                case ValueType.NUMBER:
-                    return $"f: {fl}";
-                default:
-                    return $"reference {type.ToString()} {i32}";
-            }
+                ValueType.INT => $"n: {i32}",
+                ValueType.BOOL => $"b: {b}",
+                ValueType.CHAR => $"c: {c}",
+                ValueType.NUMBER => $"f: {fl}",
+                _ => $"reference {type.ToString()} {i32}",
+            };
         }
     };
 

@@ -10,19 +10,21 @@
 - [X] Bytecode Writer
 - [X] Debug Information
 - [X] Untyped Stack
-- [ ] Use stackalloc & Span<T>
-- [ ] Memory<T> for Store
+- [X] Use stackalloc & Span<T>
+- [X] Memory<T> for Store
 - [X] Symbols
 - [X] Chars
 - [ ] Globals
 - [X] First Class Environments
 - [ ] Locals
-- [ ] Function Parameters
-- [ ] Closures
+- [X] Function Parameters
+- [X] Closures
 - [ ] Cons cells
 - [ ] Lists
 ## Reading Material:
-- [First-Class Functions in an Imperative World](https://www.lua.org/doc/jucs17.pdf)
 - [Three implementation models for Scheme](https://www.cs.unm.edu/~williams/cs491/three-imp.pdf)
 - [The Development of Chez Scheme](https://www.cs.indiana.edu/~dyb/pubs/hocs.pdf)
 - [Crafting Interpreters](http://www.craftinginterpreters.com)
+- [The Implementation of Lua 5.0](https://www.lua.org/doc/jucs05.pdf)
+- [First-Class Functions in an Imperative World](https://www.lua.org/doc/jucs17.pdf)
+- [CLR DEsign Choices](https://www.artima.com/intv/choices.html)

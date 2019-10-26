@@ -14,7 +14,7 @@ namespace StackMachine
         /// <summary>
         /// Program Counter
         /// </summary>
-        private int PC { get; set; }
+        private int SP { get; set; }
         /// <summary>
         /// Frame Pointer
         /// </summary>
@@ -39,7 +39,7 @@ namespace StackMachine
         
 		public Interpreter() 
         {
-            PC = 0;
+            SP = 0;
             FP = 0;
             Top = 0;
             Envs = new Dictionary<int, Environment>();
@@ -48,27 +48,27 @@ namespace StackMachine
 
         public void Execute(Bytecode bytecode, Environment rootEnv)
         {
-            PC = 0;
+            SP = 0;
             FP = 0;
             Span<Value> _stack = stackalloc Value[1000];
             Envs.Add(0, rootEnv); //global environment
-            while (PC < bytecode.Bytecodes.Length)
+            while (SP < bytecode.Bytecodes.Length)
             {
                 Thread.Sleep(100);
-                var opCode = (OpCode)bytecode.Bytecodes[PC].i32;
+                var opCode = (OpCode)bytecode.Bytecodes[SP].i32;
                 Console.ForegroundColor = ConsoleColor.DarkGray;
-                Console.Write($"{PC.ToString("X8")} ");
+                Console.Write($"{SP.ToString("X8")} ");
                 Console.ForegroundColor = ConsoleColor.Green;
-                if (bytecode.IsDebugging && bytecode.DebugInfo.ContainsKey(PC))
-                    Console.WriteLine(bytecode.DebugInfo[PC]);
+                if (bytecode.IsDebugging && bytecode.DebugInfo != null && bytecode.DebugInfo.ContainsKey(SP))
+                    Console.WriteLine(bytecode.DebugInfo[SP]);
                 else
                     Console.WriteLine($"OPCODE: {opCode.ToString()}");
                 Console.ForegroundColor = ConsoleColor.White;
-                PC++;
+                SP++;
                 switch (opCode)
                 {
                     case OpCode.PUSH:
-                        Push(_stack, bytecode.Bytecodes[PC++]);
+                        Push(_stack, bytecode.Bytecodes[SP++]);
                         break;
                     case OpCode.NIL:
                         Push(_stack, Value.Nil);
@@ -109,14 +109,14 @@ namespace StackMachine
                         break;
                     case OpCode.STORE:
                         {
-                            string storeLiteral = bytecode.Symbols[bytecode.Bytecodes[PC++].i32];
+                            string storeLiteral = bytecode.Symbols[bytecode.Bytecodes[SP++].i32];
                             var value = Pop(_stack);
                             Env.Add(storeLiteral, value);
                             break;
                         }
                     case OpCode.LOOKUP_LOCAL:
                         {
-                            var lookupLiteral = bytecode.Symbols[bytecode.Bytecodes[PC++].i32];
+                            var lookupLiteral = bytecode.Symbols[bytecode.Bytecodes[SP++].i32];
                             var value = Env.Lookup(lookupLiteral);
                             Push(_stack, value);
                             break;
@@ -163,28 +163,28 @@ namespace StackMachine
                         }
                     //always jump to next value
                     case OpCode.JMP:
-                        PC = bytecode.Bytecodes[PC].i32;
+                        SP = bytecode.Bytecodes[SP].i32;
                         break;
                     //conditional jump, jumps to next address if the top of the stack is true
                     case OpCode.JMPCMP:
                         {
-                            var _newPC = bytecode.Bytecodes[PC++].i32;
+                            var _newPC = bytecode.Bytecodes[SP++].i32;
                             var value = Pop(_stack);
                             if ((value.type == ValueType.BOOL && value.b) ||
                                 (value.type == ValueType.INT && value.i32 == 0))
                             {
-                                PC = _newPC;
+                                SP = _newPC;
                             }
                             break;
                         }
                     //conditional jump, jumps to next address if the top of the stack is false
                     case OpCode.JNE:
                         {
-                            var _newPC = bytecode.Bytecodes[PC++].i32;
+                            var _newPC = bytecode.Bytecodes[SP++].i32;
                             var value = Pop(_stack);
                             if (value.b)
                             {
-                                PC = _newPC;
+                                SP = _newPC;
                             }
                             break;
                         }
@@ -235,15 +235,15 @@ namespace StackMachine
                                 |  80 | FUNCTION |  .. | Function Location           |
                                 +-----+----------+-----+-----------------------------+
                              * */
-                            var closure = new Value(ValueType.CLOSURE, bytecode.Bytecodes[PC++].i32); //get the closure
+                            var closure = new Value(ValueType.CLOSURE, bytecode.Bytecodes[SP++].i32); //get the closure
                             Push(_stack, closure);
                             //create new environment with upvalues
-                            var closeUpValues = bytecode.Bytecodes[PC++];
+                            var closeUpValues = bytecode.Bytecodes[SP++];
                             //ReadOnlySpan<Value> arguments = stackalloc Value[closeUpValues.i32]; //get the number of upvalues
                             var upvalues =  new string[closeUpValues.i32];
                             for (int i = 0; i < closeUpValues.i32; i++) 
                             {
-                                upvalues[i] = bytecode.Symbols[bytecode.Bytecodes[PC++].i32];
+                                upvalues[i] = bytecode.Symbols[bytecode.Bytecodes[SP++].i32];
                             }
                             //clone the environment here
                             Envs.Add(closure.i32, rootEnv.ClosureEnvironment(upvalues));
@@ -256,7 +256,7 @@ namespace StackMachine
                     case OpCode.APP:
                         {
                             //number of arguments to get
-                            int argumentCount = bytecode.Bytecodes[PC].i32;
+                            int argumentCount = bytecode.Bytecodes[SP].i32;
                             //where to we store the arguments?
                             //using the stack would be inefficient
 
@@ -268,7 +268,8 @@ namespace StackMachine
                             }
 
 
-                            Push(_stack, PC + 1); //push return address at the top of the stack
+                            Push(_stack, SP + 1); //push return address at the top of the stack
+                            Push(_stack, FP); //push frame pointer
                             Push(_stack,CurrentEnv); //push current environment
                             
 
@@ -280,9 +281,9 @@ namespace StackMachine
                             //here we have to switch the environment
 
                             //move to procedure location
-                            PC = closure.i32;
+                            SP = closure.i32;
                             //move to closure env
-                            CurrentEnv = PC;
+                            CurrentEnv = SP;
                             break;
                         }
                     //function return, functions should always return something
@@ -293,7 +294,7 @@ namespace StackMachine
 
                             while (Top > FP) Pop(_stack);
                             CurrentEnv = Pop(_stack).i32; //previous environment
-                            PC = Pop(_stack).i32; //return address
+                            SP = Pop(_stack).i32; //return address
                             Push(_stack, returnValue);
                             break;
                         }
@@ -308,7 +309,10 @@ namespace StackMachine
         Value Pop(Span<Value> Stack) => Stack[--Top];
         void Push(Span<Value> Stack, Value value) { Stack[Top++] = value;  }
         void Push(Span<Value> Stack, int value) { Push(Stack,new Value(value)); }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "<Pending>")]
         void Push(Span<Value> Stack, bool value) { Push(Stack, new Value(value)); }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "<Pending>")]
         void Push(Span<Value> Stack, char value) { Push(Stack, new Value(value)); }
         void Push(Span<Value> Stack, float value) { Push(Stack, new Value(value)); }
 

@@ -34,11 +34,9 @@ namespace StackMachine
             Add(new Value(value));
         public int Add(char value) =>
             Add(new Value(value));
-        public int Add(ValueType type, int value) =>
-            Add(new Value(value));
 
 
-        public int Add(ValueType type, Span<Value> values)
+        public int AddArray(Span<Value> values)
         {
             values[_idx++] = new Value(ValueType.ARRAY, values.Length);
             foreach (var value in values)
