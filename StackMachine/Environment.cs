@@ -8,15 +8,15 @@ namespace StackMachine
     {
         Dictionary<string, int> Env { get; set; }
         public Environment? Parent { get; set; }
-        Store Store { get; set; }
-		public Environment(Store store)
+        Heap Store { get; set; }
+		public Environment(Heap store)
         {
             this.Store = store;
             this.Env = new Dictionary<string, int>();
             this.Parent = null;
         }
 
-        public Environment(Store store, Environment parent) : this(store)
+        public Environment(Heap store, Environment parent) : this(store)
         {
             this.Parent = parent;
         }

@@ -4,15 +4,14 @@ using System.Text;
 
 namespace StackMachine
 {
-    class Store
+    public class Heap
     {
         public Memory<Value> Memory { get; }
         int _idx = 0;
 
-        public Store(int initialMemory = 5000)
+        public Heap(Memory<Value> memory)
         {
-            Memory = new Value[initialMemory];
-            _idx = 0;
+            this.Memory = memory;
         }
         
         public void Print()

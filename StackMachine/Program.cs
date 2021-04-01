@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 
 namespace StackMachine
@@ -7,6 +8,8 @@ namespace StackMachine
     {
         static void Main()
         {
+            int x = 10;
+            int y = 20;
 
             var compiler = new BytecodeWriter(debugging: true);
             compiler.Push(10);
@@ -31,10 +34,11 @@ namespace StackMachine
 
 
             var bytecode = compiler.Compile();
-            
 
+            MemoryPool<Value> pool = MemoryPool<Value>.Shared;
+            var rental = pool.Rent(minBufferSize: 1024);
             var interpreter = new Interpreter();
-            var store = new Store();
+            var store = new Heap(rental.Memory);
             var env = new Environment(store);
             interpreter.Execute(bytecode, env);
         }

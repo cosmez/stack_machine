@@ -92,8 +92,7 @@ namespace StackMachine
                     case OpCode.PRINT:
                         {
                             var value = Pop(_stack);
-                            if (value.type == ValueType.INT || value.type == ValueType.NUMBER
-                                || value.type == ValueType.CHAR || value.type == ValueType.BOOL)
+                            if (value.type == ValueType.INT || value.type == ValueType.NUMBER || value.type == ValueType.BOOL)
                             {
                                 Console.WriteLine($"{value}");
                             }
