@@ -6,13 +6,22 @@ namespace StackMachine
 {
     class Program
     {
+        /// <summary>
+        /// TODO: Re-read contents in README.cs
+        /// </summary>
         static void Main()
         {
-            int x = 10;
-            int y = 20;
-
+            
             var compiler = new BytecodeWriter(debugging: true);
+
             compiler.Push(10);
+            compiler.StoreReference();
+            compiler.Store("ptr");
+            compiler.LookupLocal("ptr");
+            compiler.LoadReference();
+            compiler.Print();
+
+            /*compiler.Push(10);
             compiler.Store("a");
             compiler.Push(20);
             compiler.Store("b");
@@ -29,7 +38,7 @@ namespace StackMachine
             compiler.LookupLocal("a");
             compiler.Dup(); //return a contents
             compiler.Print();
-            compiler.Ret();
+            compiler.Ret();*/
             compiler.Quit();
 
 
@@ -40,7 +49,7 @@ namespace StackMachine
             var interpreter = new Interpreter();
             var store = new Heap(rental.Memory);
             var env = new Environment(store);
-            interpreter.Execute(bytecode, env);
+            interpreter.Execute(bytecode, env, store);
         }
     }
 }

@@ -57,7 +57,7 @@ namespace StackMachine
         public Value(int value) : this()
         {
             this.i32 = value;
-            this.type = ValueType.NUMBER;
+            this.type = ValueType.INT;
         }
 
         public Value(float value) : this()

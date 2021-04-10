@@ -49,6 +49,9 @@ namespace StackMachine
         private void Add(int value) =>
             Bytecode.Add(new Value(value));
 
+        private void Add(Value value) =>
+            Bytecode.Add(value);
+
         private void Add(float value) =>
             Bytecode.Add(new Value(value));
 
@@ -122,6 +125,47 @@ namespace StackMachine
             Add(value);
         }
 
+
+
+        /// <summary>
+        /// Inits an array into the heap, this pushes the refenrece of the newly created array at the top of the stack
+        /// </summary>
+        /// <param name="length"></param>
+        public void ArrayInit(int length)
+        {
+            Debug($"ARRAY_INIT ");
+            Add(length);
+        }
+
+
+        /// <summary>
+        /// Gets the `index` element from the array at `reference`
+        /// </summary>
+        /// <param name="reference">memory reference of the array</param>
+        /// <param name="index">elmeent</param>
+        public void ArrayGet(int reference, int index)
+        {
+            Debug($"ARRAY_GET {index}");
+            Add(OpCode.ARRAY_GET);
+            Add(reference);
+            Add(index);
+        }
+
+        /// <summary>
+        /// Sets the `index` element from the array at `reference`
+        /// </summary>
+        /// <param name="reference">memory reference of the array</param>
+        /// <param name="index">elmeent</param>
+        public void ArraySet(int reference, int index)
+        {
+            Debug($"ARRAY_SET {reference} {index}");
+            Add(OpCode.ARRAY_SET);
+            Add(reference);
+            Add(index);
+        }
+
+
+
         public void Nil()
         {
             Debug($"PUSH NIL"); 
@@ -157,6 +201,16 @@ namespace StackMachine
             Add(OpCode.STORE);
             if (!Symbols.Contains(name)) Symbols.Add(name);
             Add(Symbols.IndexOf(name));
+        }
+
+        public void StoreReference()
+        {
+            Add(OpCode.STORE_REFERENCE);
+        }
+
+        public void LoadReference()
+        {
+            Add(OpCode.LOAD_REFERENCE);
         }
 
         public void LookupLocal(string name)

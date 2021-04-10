@@ -36,6 +36,8 @@ namespace StackMachine
             get { return Envs[CurrentEnv]; }
         }
 
+        private Heap Heap;
+
         
 		public Interpreter() 
         {
@@ -46,16 +48,17 @@ namespace StackMachine
         }
 
 
-        public void Execute(Bytecode bytecode, Environment rootEnv)
+        public void Execute(Bytecode bytecode, Environment rootEnv, Heap heap)
         {
+            this.Heap = heap;
             SP = 0;
             FP = 0;
-            Span<Value> _stack = stackalloc Value[1000];
-            Envs.Add(0, rootEnv); //global environment
+            Span<Value> _stack = stackalloc Value[1000]; //allocate our local stack
+            Envs.Add(0, rootEnv); //global environment, still no modules supported
             while (SP < bytecode.Bytecodes.Length)
             {
                 Thread.Sleep(100);
-                var opCode = (OpCode)bytecode.Bytecodes[SP].i32;
+                var opCode = (OpCode)bytecode.Bytecodes[SP].i32; //grabs the current bytecode operation
                 Console.ForegroundColor = ConsoleColor.DarkGray;
                 Console.Write($"{SP.ToString("X8")} ");
                 Console.ForegroundColor = ConsoleColor.Green;
@@ -84,8 +87,7 @@ namespace StackMachine
                         break;
                     case OpCode.DUP:
                         {
-                            var value = Pop(_stack);
-                            Push(_stack, value);
+                            var value = Peek(_stack);
                             Push(_stack, value);
                             break;
                         }
@@ -118,6 +120,20 @@ namespace StackMachine
                             var lookupLiteral = bytecode.Symbols[bytecode.Bytecodes[SP++].i32];
                             var value = Env.Lookup(lookupLiteral);
                             Push(_stack, value);
+                            break;
+                        }
+                    case OpCode.LOAD_REFERENCE: //dereference
+                        {
+                            var reference = Pop(_stack);
+                            var value = Heap[reference.i32];
+                            Push(_stack, value);
+                            break;
+                        }
+                    case OpCode.STORE_REFERENCE: //reference
+                        {
+                            var value = Pop(_stack);
+                            var reference = Heap.Add(value);
+                            Push(_stack, reference);
                             break;
                         }
                     case OpCode.ADD:
@@ -306,12 +322,11 @@ namespace StackMachine
         }
 
         Value Pop(Span<Value> Stack) => Stack[--Top];
+        Value Peek(Span<Value> Stack) => Stack[Top];
         void Push(Span<Value> Stack, Value value) { Stack[Top++] = value;  }
         void Push(Span<Value> Stack, int value) { Push(Stack,new Value(value)); }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "<Pending>")]
         void Push(Span<Value> Stack, bool value) { Push(Stack, new Value(value)); }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Code Quality", "IDE0051:Remove unused private members", Justification = "<Pending>")]
         void Push(Span<Value> Stack, char value) { Push(Stack, new Value(value)); }
         void Push(Span<Value> Stack, float value) { Push(Stack, new Value(value)); }
 

@@ -4,6 +4,10 @@ using System.Text;
 
 namespace StackMachine
 {
+    /// <summary>
+    /// This is our dynamic memory allocator, right now the implementation is really naive.
+    /// it just pushes items by using an autoincremental index and does no gabarge collection
+    /// </summary>
     public class Heap
     {
         public Memory<Value> Memory { get; }
@@ -18,6 +22,7 @@ namespace StackMachine
         {
 
         }
+
 
         public int Add(Value value)
         {
@@ -45,7 +50,11 @@ namespace StackMachine
             return _idx-1;
         }
 
-
+        /// <summary>
+        /// Returns an element from the Heap at x coordinate
+        /// </summary>
+        /// <param name="reference"></param>
+        /// <returns></returns>
         public Value this[int reference]
         {
             get
@@ -54,6 +63,11 @@ namespace StackMachine
             }
         }
 
+        /// <summary>
+        /// Returns an element from the Heap at x coordinate
+        /// </summary>
+        /// <param name="reference"></param>
+        /// <returns></returns>
         public Value Get(int reference)
         {
             return Memory.Span[reference];

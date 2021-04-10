@@ -5,7 +5,12 @@ VisualStudioVersion = 16.0.28917.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StackMachine", "StackMachine\StackMachine.csproj", "{C0E7951D-95AE-4E52-AD01-373186C8EB23}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StackMachine.Tests", "StackMachine.Tests\StackMachine.Tests.csproj", "{1B0730B0-2BAA-41BD-A8D4-282F00FDC0E9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StackMachine.Tests", "StackMachine.Tests\StackMachine.Tests.csproj", "{1B0730B0-2BAA-41BD-A8D4-282F00FDC0E9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C93743B3-2DE7-4BC1-964D-8F64F1BDE103}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
