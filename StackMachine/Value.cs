@@ -13,6 +13,7 @@ namespace StackMachine
         BOOL,
         SYMBOL,
         STRING, //reference types
+        REFERENCE,
         CLOSURE, //closure
         PAIR,
         ARRAY,
@@ -80,6 +81,7 @@ namespace StackMachine
                 ValueType.INT => $"n: {i32}",
                 ValueType.BOOL => $"b: {b}",
                 ValueType.NUMBER => $"f: {fl}",
+                ValueType.REFERENCE => $"ref: {i32}", //TODO print references as hexadecimal
                 _ => $"reference {type.ToString()} {i32}",
             };
         }

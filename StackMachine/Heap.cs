@@ -30,7 +30,7 @@ namespace StackMachine
             return _idx++;
         }
 
-        public int Add(int value) =>
+        public Value Add(int value) =>
             Add(new Value(value));
         public int Add(float value) =>
             Add(new Value(value));

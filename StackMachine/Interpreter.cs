@@ -125,15 +125,19 @@ namespace StackMachine
                     case OpCode.LOAD_REFERENCE: //dereference
                         {
                             var reference = Pop(_stack);
-                            var value = Heap[reference.i32];
-                            Push(_stack, value);
+                            if (reference.type == ValueType.REFERENCE)
+                            {
+                                var value = Heap[reference.i32];
+                                Push(_stack, value);
+                            }
+                            //TODO: add type error
                             break;
                         }
                     case OpCode.STORE_REFERENCE: //reference
                         {
                             var value = Pop(_stack);
                             var reference = Heap.Add(value);
-                            Push(_stack, reference);
+                            Push(_stack, new Value(ValueType.REFERENCE,reference));
                             break;
                         }
                     case OpCode.ADD:
